@@ -1,24 +1,35 @@
-# README
+# The Notebook Calendar
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Requirements
 
-Things you may want to cover:
+- Ruby version in `.ruby-version`
+- Node.js 22.12+ with npm
+- PostgreSQL
 
-* Ruby version
+## Setup
 
-* System dependencies
+```sh
+bin/setup
+```
 
-* Configuration
+The setup command installs Ruby and JavaScript dependencies and prepares the development database.
 
-* Database creation
+## Development
 
-* Database initialization
+Run Rails and Vite together with:
 
-* How to run the test suite
+```sh
+bin/dev
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+The application is available at `http://localhost:3000`. The `/up` endpoint is the health check used by the application and deployment tooling.
 
-* Deployment instructions
+## Tests and checks
 
-* ...
+```sh
+bin/rails test
+bin/rubocop
+npm run build
+```
+
+The frontend entrypoint mounts Vue at the root page and checks the Rails health endpoint to verify the frontend/API boundary.

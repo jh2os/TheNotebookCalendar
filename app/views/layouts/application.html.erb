@@ -7,7 +7,6 @@
     <meta name="application-name" content="The Notebook Calendar">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
 
     <%= yield :head %>
 
@@ -22,7 +21,7 @@
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
     <%= vite_client_tag %>
-    <%= vite_javascript_tag 'application' %>
+    <%= vite_javascript_tag "application" %>
     <!--
       If using a TypeScript entrypoint file:
         vite_typescript_tag 'application'
