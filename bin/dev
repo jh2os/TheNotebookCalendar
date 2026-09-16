@@ -1,2 +1,22 @@
 #!/usr/bin/env ruby
-exec "./bin/rails", "server", *ARGV
+# frozen_string_literal: true
+
+vite_pid = Process.spawn("./bin/vite", "dev")
+rails_pid = Process.spawn("./bin/rails", "server", *ARGV)
+
+shutdown = lambda do
+  [ vite_pid, rails_pid ].each do |pid|
+    Process.kill("TERM", pid)
+  rescue Errno::ECHILD, Errno::ESRCH
+    nil
+  end
+end
+
+Signal.trap("INT") { shutdown.call; exit }
+Signal.trap("TERM") { shutdown.call; exit }
+
+begin
+  Process.wait(rails_pid)
+ensure
+  shutdown.call
+end
