@@ -107,6 +107,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -145,6 +154,15 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install JavaScript dependencies
+        run: npm ci
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
