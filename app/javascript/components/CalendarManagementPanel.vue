@@ -67,7 +67,7 @@ async function addMember() {
   await request(`/api/calendars/${selectedCalendar.value.id}/members`, {
     method: "POST",
     body: JSON.stringify({ email: memberEmail.value }),
-  }, "Member added")
+  }, "This email will be able to edit this calendar. You will have to notify them yourself if they do not have an account already.")
   memberEmail.value = ""
   await loadMembers()
 }
