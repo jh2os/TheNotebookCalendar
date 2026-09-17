@@ -14,6 +14,14 @@ bin/setup
 
 The setup command installs Ruby and JavaScript dependencies and prepares the development database.
 
+To load local secrets and environment variables, copy the example file and fill in the values:
+
+```sh
+cp .env.example .env
+```
+
+The `.env` file is ignored by Git. For production Docker runs, pass the file at runtime with `docker run --env-file .env ...`; do not copy it into the image.
+
 ## Development
 
 Run Rails and Vite together with:
