@@ -40,7 +40,18 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
+    - THE_NOTEBOOK_CALENDAR_DATABASE_PASSWORD
+    - POSTMARK_SERVER_TOKEN
   clear:
+    APP_HOST: calendar.example.com
+    APP_PROTOCOL: https
+    RAILS_ASSUME_SSL: true
+    RAILS_FORCE_SSL: true
+    SMTP_ADDRESS: smtp.example.com
+    SMTP_PORT: 587
+    SMTP_DOMAIN: calendar.example.com
+    SMTP_AUTHENTICATION: plain
+    MAILER_FROM: no-reply@calendar.example.com
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
     SOLID_QUEUE_IN_PUMA: true
