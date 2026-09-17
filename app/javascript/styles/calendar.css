@@ -18,6 +18,12 @@ select {
   font: inherit;
 }
 
+button,
+select,
+textarea {
+  min-width: 0;
+}
+
 .calendar-app {
   width: min(1100px, calc(100% - 32px));
   margin: 0 auto;
@@ -36,6 +42,10 @@ select {
   justify-content: space-between;
   gap: 24px;
   margin-bottom: 28px;
+}
+
+.calendar-header > div {
+  min-width: 0;
 }
 
 .eyebrow {
@@ -62,6 +72,7 @@ h1 {
 
 select,
 .calendar-toolbar button {
+  min-height: 44px;
   border: 1px solid #b9ae9e;
   border-radius: 4px;
   background: #fffdf8;
@@ -77,6 +88,7 @@ select,
 }
 
 .calendar-toolbar {
+  flex-wrap: wrap;
   gap: 8px;
   padding: 16px;
   border-bottom: 1px solid #ded6c9;
@@ -92,6 +104,10 @@ select,
   margin-right: auto;
 }
 
+.view-switcher button {
+  min-width: 76px;
+}
+
 .view-switcher button.active {
   border-color: #2e6f68;
   background: #2e6f68;
@@ -102,6 +118,11 @@ select,
   margin-left: auto;
   color: #83786a;
   font: 0.8rem sans-serif;
+}
+
+.calendar-toolbar button,
+.view-switcher {
+  flex: 0 1 auto;
 }
 
 .weekday-row,
@@ -131,6 +152,7 @@ select,
   cursor: pointer;
   padding: 12px;
   text-align: left;
+  touch-action: manipulation;
 }
 
 .calendar-day:nth-child(7n) {
@@ -243,6 +265,7 @@ select,
 }
 
 .save-note {
+  min-height: 44px;
   margin-top: 12px;
   border: 0;
   border-radius: 4px;
@@ -269,8 +292,27 @@ select,
     margin-bottom: 18px;
   }
 
+  h1 {
+    font-size: 2.25rem;
+    overflow-wrap: anywhere;
+  }
+
+  .calendar-selector,
+  .calendar-selector select {
+    width: 100%;
+  }
+
   .calendar-toolbar {
-    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .calendar-toolbar > button {
+    flex: 1 1 calc(33.333% - 8px);
+  }
+
+  .calendar-toolbar > button,
+  .view-switcher button {
+    white-space: nowrap;
   }
 
   .view-switcher {
@@ -289,11 +331,60 @@ select,
   }
 
   .calendar-day {
-    min-height: 70px;
-    padding: 8px;
+    min-height: 64px;
+    padding: 7px;
+  }
+
+  .calendar-day.today > span:first-child {
+    width: 26px;
+    height: 26px;
   }
 
   .week-grid .calendar-day {
-    min-height: 150px;
+    min-height: 116px;
+  }
+
+  .note-editor {
+    margin-top: 16px;
+    padding: 16px;
+  }
+
+  .note-editor-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .calendar-app {
+    width: calc(100% - 12px);
+    padding-top: 16px;
+  }
+
+  .calendar-toolbar > button {
+    flex-basis: calc(50% - 8px);
+  }
+
+  .calendar-toolbar > button:nth-of-type(2) {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .weekday-row span {
+    font-size: 0.58rem;
+  }
+
+  .calendar-day {
+    min-height: 56px;
+    padding: 5px;
+  }
+
+  .week-grid .calendar-day {
+    min-height: 94px;
+  }
+
+  .note-indicator {
+    margin-top: 12px;
   }
 }
