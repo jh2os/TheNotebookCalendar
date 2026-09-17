@@ -21,17 +21,17 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     assert_text "Personal"
     assert_selector ".calendar-panel"
 
-    find('.calendar-day.today').click
-    assert_selector '[aria-label="Daily note editor"] textarea[aria-label="Daily note"]:not([disabled])'
-    find('textarea[aria-label="Daily note"]').set("Remember the important thing")
+    find(".calendar-day.today").click
+    assert_selector "[aria-label=\"Daily note editor\"] textarea[aria-label=\"Daily note\"]:not([disabled])"
+    find("textarea[aria-label=\"Daily note\"]").set("Remember the important thing")
     click_button "Save note"
-    assert_selector 'textarea[aria-label="Daily note"]'
-    assert_equal "Remember the important thing", find('textarea[aria-label="Daily note"]').value
+    assert_selector "textarea[aria-label=\"Daily note\"]"
+    assert_equal "Remember the important thing", find("textarea[aria-label=\"Daily note\"]").value
 
     page.refresh
-    find('.calendar-day.today').click
-    assert_selector '[aria-label="Daily note editor"] textarea[aria-label="Daily note"]'
-    assert_equal "Remember the important thing", find('textarea[aria-label="Daily note"]').value
+    find(".calendar-day.today").click
+    assert_selector "[aria-label=\"Daily note editor\"] textarea[aria-label=\"Daily note\"]"
+    assert_equal "Remember the important thing", find("textarea[aria-label=\"Daily note\"]").value
   end
 
   test "existing user can navigate views, edit notes, change theme, and log out" do
@@ -41,16 +41,17 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
 
     assert_text "Existing calendar"
     assert_selector ".calendar-panel"
-    find('.calendar-day.today').click
-    assert_selector 'textarea[aria-label="Daily note"]:not([disabled])'
-    assert_equal "Existing note", find('textarea[aria-label="Daily note"]').value
-    find('[aria-label="Daily note editor"] .drawer-close').click
+    find(".calendar-day.today").click
+    assert_selector "textarea[aria-label=\"Daily note\"]:not([disabled])"
+    assert_equal "Existing note", find("textarea[aria-label=\"Daily note\"]").value
+    find("[aria-label=\"Daily note editor\"] .drawer-close").click
     click_button "Week"
     assert_selector ".week-grid"
     click_button "Next week"
     click_button "Month"
     click_button "Open settings"
-    find('input[role="switch"]').click
+    assert_selector "#calendar-management-drawer"
+    find(".preferences-section label.theme-switch:not(.view-switch)").click
     assert_equal "dark", page.evaluate_script("document.documentElement.dataset.theme")
     click_button "Log out"
     assert_text "Sign in with a magic link"
@@ -65,7 +66,8 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     click_button "Add member"
     assert_text @member.email
 
-    find('#calendar-management-drawer .drawer-close').click
+    find("#calendar-management-drawer .drawer-close").click
+    click_button "Open settings"
     click_button "Log out"
     sign_in_as(@member)
     assert_text "Shared calendar"
