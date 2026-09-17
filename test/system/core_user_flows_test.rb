@@ -19,16 +19,18 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     fill_in "Calendar name", with: "Personal"
     click_button "Create"
     assert_text "Personal"
-    assert_selector 'textarea[aria-label="Daily note"]:not([disabled])'
+    assert_selector ".calendar-panel"
 
-    click_button "#{Date.current.day}"
+    find('.calendar-day.today').click
+    assert_selector '[aria-label="Daily note editor"] textarea[aria-label="Daily note"]:not([disabled])'
     find('textarea[aria-label="Daily note"]').set("Remember the important thing")
     click_button "Save note"
     assert_selector 'textarea[aria-label="Daily note"]'
     assert_equal "Remember the important thing", find('textarea[aria-label="Daily note"]').value
 
     page.refresh
-    assert_selector 'textarea[aria-label="Daily note"]'
+    find('.calendar-day.today').click
+    assert_selector '[aria-label="Daily note editor"] textarea[aria-label="Daily note"]'
     assert_equal "Remember the important thing", find('textarea[aria-label="Daily note"]').value
   end
 
@@ -38,13 +40,17 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     sign_in_as(@owner)
 
     assert_text "Existing calendar"
+    assert_selector ".calendar-panel"
+    find('.calendar-day.today').click
     assert_selector 'textarea[aria-label="Daily note"]:not([disabled])'
     assert_equal "Existing note", find('textarea[aria-label="Daily note"]').value
+    find('[aria-label="Daily note editor"] .drawer-close').click
     click_button "Week"
     assert_selector ".week-grid"
     click_button "Next week"
     click_button "Month"
-    click_button "Dark"
+    click_button "Open settings"
+    find('input[role="switch"]').click
     assert_equal "dark", page.evaluate_script("document.documentElement.dataset.theme")
     click_button "Log out"
     assert_text "Sign in with a magic link"
@@ -54,10 +60,12 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     calendar = create_calendar("Shared calendar", @owner)
     sign_in_as(@owner)
 
+    click_button "Open settings"
     fill_in "Add member", with: @member.email
     click_button "Add member"
     assert_text @member.email
 
+    find('#calendar-management-drawer .drawer-close').click
     click_button "Log out"
     sign_in_as(@member)
     assert_text "Shared calendar"
