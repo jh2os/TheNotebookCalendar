@@ -1,8 +1,36 @@
 :root {
   color-scheme: light;
   font-family: Georgia, "Times New Roman", serif;
-  color: #25221e;
-  background: #f4f0e7;
+  --background: #f4f0e7;
+  --foreground: #25221e;
+  --surface: #fffdf8;
+  --surface-muted: #fffaf1;
+  --border: #ded6c9;
+  --border-strong: #b9ae9e;
+  --muted: #83786a;
+  --muted-strong: #655e54;
+  --accent: #a0522d;
+  --accent-soft: #f5e3d2;
+  --success: #2e6f68;
+  --shadow: rgb(73 55 36 / 10%);
+  color: var(--foreground);
+  background: var(--background);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #1c2423;
+  --foreground: #f1eadf;
+  --surface: #26302e;
+  --surface-muted: #202a28;
+  --border: #43504c;
+  --border-strong: #63736d;
+  --muted: #b1bdb6;
+  --muted-strong: #d2d8d1;
+  --accent: #e09a68;
+  --accent-soft: #493a32;
+  --success: #79c2ae;
+  --shadow: rgb(0 0 0 / 28%);
 }
 
 * {
@@ -11,6 +39,8 @@
 
 body {
   margin: 0;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 button,
@@ -50,7 +80,7 @@ textarea {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #a0522d;
+  color: var(--accent);
   font: 700 0.75rem/1.2 sans-serif;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -65,38 +95,41 @@ h1 {
 .calendar-selector {
   display: grid;
   gap: 6px;
-  color: #655e54;
+  color: var(--muted-strong);
   font: 700 0.75rem/1.2 sans-serif;
   text-transform: uppercase;
 }
 
 select,
-.calendar-toolbar button {
+.calendar-toolbar button,
+.theme-toggle {
   min-height: 44px;
-  border: 1px solid #b9ae9e;
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  background: #fffdf8;
-  color: #25221e;
+  background: var(--surface);
+  color: var(--foreground);
   cursor: pointer;
   padding: 10px 12px;
 }
 
 .calendar-panel {
-  border-top: 2px solid #25221e;
-  background: #fffdf8;
-  box-shadow: 0 12px 30px rgb(73 55 36 / 10%);
+  border-top: 2px solid var(--foreground);
+  background: var(--surface);
+  box-shadow: 0 12px 30px var(--shadow);
 }
 
 .calendar-toolbar {
   flex-wrap: wrap;
   gap: 8px;
   padding: 16px;
-  border-bottom: 1px solid #ded6c9;
+  border-bottom: 1px solid var(--border);
 }
 
 .calendar-toolbar button:hover,
-.calendar-toolbar button:focus-visible {
-  border-color: #a0522d;
+.calendar-toolbar button:focus-visible,
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  border-color: var(--accent);
 }
 
 .view-switcher {
@@ -109,14 +142,14 @@ select,
 }
 
 .view-switcher button.active {
-  border-color: #2e6f68;
-  background: #2e6f68;
-  color: #fffdf8;
+  border-color: var(--success);
+  background: var(--success);
+  color: var(--surface);
 }
 
 .loading-status {
   margin-left: auto;
-  color: #83786a;
+  color: var(--muted);
   font: 0.8rem sans-serif;
 }
 
@@ -132,7 +165,7 @@ select,
 }
 
 .weekday-row {
-  color: #83786a;
+  color: var(--muted);
   font: 700 0.75rem/1 sans-serif;
   text-transform: uppercase;
 }
@@ -145,10 +178,10 @@ select,
   position: relative;
   min-height: 108px;
   border: 0;
-  border-top: 1px solid #ded6c9;
-  border-right: 1px solid #ded6c9;
+  border-top: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   background: transparent;
-  color: #25221e;
+  color: var(--foreground);
   cursor: pointer;
   padding: 12px;
   text-align: left;
@@ -165,12 +198,12 @@ select,
 
 .calendar-day:hover,
 .calendar-day:focus-visible {
-  outline: 3px solid #d9a675;
+  outline: 3px solid var(--accent);
   outline-offset: -3px;
 }
 
 .calendar-day.outside-month {
-  color: #b9ae9e;
+  color: var(--muted);
 }
 
 .calendar-day.today > span:first-child {
@@ -179,12 +212,12 @@ select,
   height: 30px;
   place-items: center;
   border-radius: 50%;
-  background: #a0522d;
-  color: #fffdf8;
+  background: var(--accent);
+  color: var(--surface);
 }
 
 .calendar-day.selected {
-  background: #f5e3d2;
+  background: var(--accent-soft);
 }
 
 .note-indicator {
@@ -193,34 +226,34 @@ select,
   height: 8px;
   margin-top: 22px;
   border-radius: 50%;
-  background: #2e6f68;
+  background: var(--success);
 }
 
 .selected-date {
   gap: 6px;
   margin: 0;
   padding: 14px 16px;
-  color: #655e54;
+  color: var(--muted-strong);
   font: 0.9rem sans-serif;
 }
 
 .notice {
   padding: 18px;
-  border-left: 4px solid #a0522d;
-  background: #fffdf8;
+  border-left: 4px solid var(--accent);
+  background: var(--surface);
   font: 1rem sans-serif;
 }
 
 .notice.error {
-  color: #8f3028;
+  color: var(--accent);
 }
 
 .note-editor {
   margin-top: 24px;
   padding: 20px;
-  border-top: 2px solid #25221e;
-  background: #fffdf8;
-  box-shadow: 0 12px 30px rgb(73 55 36 / 10%);
+  border-top: 2px solid var(--foreground);
+  background: var(--surface);
+  box-shadow: 0 12px 30px var(--shadow);
 }
 
 .note-editor-header {
@@ -238,29 +271,29 @@ select,
 }
 
 .save-state {
-  color: #a0522d;
+  color: var(--accent);
   font: 700 0.8rem sans-serif;
 }
 
 .save-state.saved {
-  color: #2e6f68;
+  color: var(--success);
 }
 
 .note-editor textarea {
   display: block;
   width: 100%;
   resize: vertical;
-  border: 1px solid #b9ae9e;
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  background: #fffaf1;
-  color: #25221e;
+  background: var(--surface-muted);
+  color: var(--foreground);
   font: 1rem/1.5 Georgia, "Times New Roman", serif;
   padding: 12px;
 }
 
 .note-editor textarea:focus {
-  border-color: #a0522d;
-  outline: 2px solid #d9a675;
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -269,8 +302,8 @@ select,
   margin-top: 12px;
   border: 0;
   border-radius: 4px;
-  background: #2e6f68;
-  color: #fffdf8;
+  background: var(--success);
+  color: var(--surface);
   cursor: pointer;
   padding: 11px 16px;
 }

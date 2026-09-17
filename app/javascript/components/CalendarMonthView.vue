@@ -11,6 +11,7 @@ const selectedDate = ref(isoDate(new Date()))
 const notes = ref({})
 const loading = ref(false)
 const error = ref("")
+const theme = ref("light")
 
 const periodLabel = computed(() => viewMode.value === "month"
   ? displayedMonth.value.toLocaleDateString(undefined, { month: "long", year: "numeric" })
@@ -43,8 +44,27 @@ const weekDays = computed(() => Array.from({ length: 7 }, (_, index) => {
 
 const selectedCalendar = computed(() => calendars.value.find((calendar) => String(calendar.id) === String(selectedCalendarId.value)))
 
-onMounted(loadCalendars)
+onMounted(() => {
+  initializeTheme()
+  loadCalendars()
+})
 watch([selectedCalendarId, displayedMonth, displayedWeek, viewMode], loadNotes)
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem("notebook-calendar-theme")
+  theme.value = savedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+  applyTheme()
+}
+
+function toggleTheme() {
+  theme.value = theme.value === "light" ? "dark" : "light"
+  localStorage.setItem("notebook-calendar-theme", theme.value)
+  applyTheme()
+}
+
+function applyTheme() {
+  document.documentElement.dataset.theme = theme.value
+}
 
 async function loadCalendars() {
   try {
@@ -161,6 +181,14 @@ function clearNote(date) {
           </option>
         </select>
       </label>
+      <button
+        type="button"
+        class="theme-toggle"
+        :aria-label="`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`"
+        @click="toggleTheme"
+      >
+        {{ theme === "light" ? "Dark" : "Light" }}
+      </button>
     </header>
 
     <p v-if="error" class="notice error">{{ error }}</p>
