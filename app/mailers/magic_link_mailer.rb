@@ -1,7 +1,7 @@
 class MagicLinkMailer < ApplicationMailer
   def login(user, token)
-    @login_url = Rails.application.routes.url_helpers.api_auth_magic_link_url(
-      token: token,
+    @login_url = Rails.application.routes.url_helpers.root_url(
+      magic_link: token,
       **default_url_options
     )
 

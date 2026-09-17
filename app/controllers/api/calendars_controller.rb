@@ -2,6 +2,7 @@ module Api
   class CalendarsController < ApplicationController
     before_action :require_authentication
     before_action :set_calendar, only: %i[show update destroy]
+    before_action :require_owner, only: %i[update destroy]
 
     def index
       render json: { calendars: current_user.calendars.map { |calendar| calendar_json(calendar) } }
@@ -40,6 +41,12 @@ module Api
 
     def set_calendar
       @calendar = current_user.calendars.find(params[:id])
+    end
+
+    def require_owner
+      return if @calendar.calendar_memberships.exists?(user: current_user, role: "owner")
+
+      render json: { error: "Calendar owner access required" }, status: :forbidden
     end
 
     def calendar_params

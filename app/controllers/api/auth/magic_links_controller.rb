@@ -2,10 +2,12 @@ module Api
   module Auth
     class MagicLinksController < ApplicationController
       def create
-        user = User.find_by(email: normalized_email)
-        deliver_magic_link(user) if user
+        user = User.find_or_create_by!(email: normalized_email)
+        deliver_magic_link(user)
 
-        render json: { message: "If an account exists, a magic link has been sent." }, status: :accepted
+        render json: { message: "If the email is valid, a magic link has been sent." }, status: :accepted
+      rescue ActiveRecord::RecordInvalid => error
+        render json: { errors: error.record.errors.to_hash }, status: :unprocessable_entity
       end
 
       def show
@@ -28,7 +30,7 @@ module Api
 
       def deliver_magic_link(user)
         token = user.issue_magic_link!
-          MagicLinkMailer.login(user, token).deliver_now
+        MagicLinkMailer.login(user, token).deliver_now
       end
     end
   end

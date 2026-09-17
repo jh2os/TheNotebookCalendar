@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from "vue"
+import { apiFetch } from "../services/api"
 
 const props = defineProps({
   calendarId: { type: [String, Number], required: true },
@@ -27,12 +28,9 @@ async function saveNote() {
   error.value = ""
 
   try {
-    const response = await fetch(`/api/calendars/${props.calendarId}/notes/${props.date}`, {
+    const response = await apiFetch(`/api/calendars/${props.calendarId}/notes/${props.date}`, {
       method: "PUT",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ note: { body: body.value } }),
     })
 

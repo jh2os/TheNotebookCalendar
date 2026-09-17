@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue"
 import DayNoteEditor from "./DayNoteEditor.vue"
 import CalendarManagementPanel from "./CalendarManagementPanel.vue"
+import { apiFetch } from "../services/api"
 
 const calendars = ref([])
 const selectedCalendarId = ref("")
@@ -74,13 +75,24 @@ function applyTheme() {
 
 async function checkSession() {
   try {
-    const response = await fetch("/api/auth/session", { headers: { Accept: "application/json" } })
+    const magicLinkToken = new URLSearchParams(window.location.search).get("magic_link")
+    const response = magicLinkToken
+      ? await apiFetch(`/api/auth/magic_links/${encodeURIComponent(magicLinkToken)}`)
+      : await apiFetch("/api/auth/session")
     if (!response.ok) throw new Error("Not authenticated")
+    if (magicLinkToken) {
+      window.location.replace(window.location.pathname)
+      return
+    }
     currentUser.value = (await response.json()).user
     authenticated.value = true
     await loadCalendars()
-  } catch {
+  } catch (sessionError) {
     authenticated.value = false
+    if (new URLSearchParams(window.location.search).has("magic_link")) {
+      authMessage.value = sessionError.message || "This login link is invalid or expired."
+      window.history.replaceState({}, "", window.location.pathname)
+    }
   } finally {
     authLoading.value = false
   }
@@ -89,20 +101,20 @@ async function checkSession() {
 async function requestMagicLink() {
   authMessage.value = ""
   try {
-    const response = await fetch("/api/auth/magic_links", {
+    const response = await apiFetch("/api/auth/magic_links", {
       method: "POST",
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: authEmail.value }),
     })
     if (!response.ok) throw new Error("Unable to request a login link")
-    authMessage.value = "If an account exists, a login link has been sent."
+    authMessage.value = "If the email is valid, a login link has been sent."
   } catch (authError) {
     authMessage.value = authError.message
   }
 }
 
 async function logout() {
-  await fetch("/api/auth/session", { method: "DELETE", headers: { Accept: "application/json" } })
+  await apiFetch("/api/auth/session", { method: "DELETE" })
   authenticated.value = false
   currentUser.value = null
   calendars.value = []
@@ -111,7 +123,7 @@ async function logout() {
 
 async function loadCalendars() {
   try {
-    const response = await fetch("/api/calendars", { headers: { Accept: "application/json" } })
+    const response = await apiFetch("/api/calendars")
     if (response.status === 401) {
       authenticated.value = false
       return

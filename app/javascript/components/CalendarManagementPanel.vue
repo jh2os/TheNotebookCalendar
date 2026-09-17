@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue"
+import { apiFetch } from "../services/api"
 
 const props = defineProps({
   calendars: { type: Array, required: true },
@@ -50,7 +51,7 @@ async function deleteCalendar() {
 async function loadMembers() {
   if (!selectedCalendar.value) return
   try {
-    const response = await fetch(`/api/calendars/${selectedCalendar.value.id}/members`, { headers: { Accept: "application/json" } })
+    const response = await apiFetch(`/api/calendars/${selectedCalendar.value.id}/members`)
     if (!response.ok) throw new Error("Unable to load members")
     members.value = (await response.json()).members
   } catch (loadError) {
@@ -79,9 +80,9 @@ async function request(url, options, successMessage) {
   error.value = ""
   message.value = ""
   try {
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       ...options,
-      headers: { Accept: "application/json", "Content-Type": "application/json", ...(options.headers || {}) },
+      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
     })
     if (!response.ok) throw new Error(await responseError(response))
     message.value = successMessage
