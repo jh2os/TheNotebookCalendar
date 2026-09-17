@@ -10,6 +10,11 @@ Rails.application.routes.draw do
   namespace :api do
     resources :calendars, only: %i[index show create update destroy]
     resources :calendar_memberships, path: "calendars/:calendar_id/members", only: %i[index create destroy], param: :user_id
+    get "calendars/:calendar_id/notes", to: "daily_notes#index", as: :calendar_notes
+    get "calendars/:calendar_id/notes/:date", to: "daily_notes#show", as: :calendar_note
+    put "calendars/:calendar_id/notes/:date", to: "daily_notes#upsert"
+    patch "calendars/:calendar_id/notes/:date", to: "daily_notes#upsert"
+    delete "calendars/:calendar_id/notes/:date", to: "daily_notes#destroy"
 
     namespace :auth do
       resources :magic_links, only: :create
