@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue"
 import DayNoteEditor from "./DayNoteEditor.vue"
+import CalendarManagementPanel from "./CalendarManagementPanel.vue"
 
 const calendars = ref([])
 const selectedCalendarId = ref("")
@@ -12,6 +13,11 @@ const notes = ref({})
 const loading = ref(false)
 const error = ref("")
 const theme = ref("light")
+const currentUser = ref(null)
+const authenticated = ref(false)
+const authLoading = ref(true)
+const authEmail = ref("")
+const authMessage = ref("")
 
 const periodLabel = computed(() => viewMode.value === "month"
   ? displayedMonth.value.toLocaleDateString(undefined, { month: "long", year: "numeric" })
@@ -46,7 +52,7 @@ const selectedCalendar = computed(() => calendars.value.find((calendar) => Strin
 
 onMounted(() => {
   initializeTheme()
-  loadCalendars()
+  checkSession()
 })
 watch([selectedCalendarId, displayedMonth, displayedWeek, viewMode], loadNotes)
 
@@ -66,9 +72,50 @@ function applyTheme() {
   document.documentElement.dataset.theme = theme.value
 }
 
+async function checkSession() {
+  try {
+    const response = await fetch("/api/auth/session", { headers: { Accept: "application/json" } })
+    if (!response.ok) throw new Error("Not authenticated")
+    currentUser.value = (await response.json()).user
+    authenticated.value = true
+    await loadCalendars()
+  } catch {
+    authenticated.value = false
+  } finally {
+    authLoading.value = false
+  }
+}
+
+async function requestMagicLink() {
+  authMessage.value = ""
+  try {
+    const response = await fetch("/api/auth/magic_links", {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ email: authEmail.value }),
+    })
+    if (!response.ok) throw new Error("Unable to request a login link")
+    authMessage.value = "If an account exists, a login link has been sent."
+  } catch (authError) {
+    authMessage.value = authError.message
+  }
+}
+
+async function logout() {
+  await fetch("/api/auth/session", { method: "DELETE", headers: { Accept: "application/json" } })
+  authenticated.value = false
+  currentUser.value = null
+  calendars.value = []
+  selectedCalendarId.value = ""
+}
+
 async function loadCalendars() {
   try {
     const response = await fetch("/api/calendars", { headers: { Accept: "application/json" } })
+    if (response.status === 401) {
+      authenticated.value = false
+      return
+    }
     if (!response.ok) throw new Error("Unable to load calendars")
 
     calendars.value = (await response.json()).calendars
@@ -173,7 +220,7 @@ function clearNote(date) {
         <p class="eyebrow">The Notebook Calendar</p>
         <h1>{{ periodLabel }}</h1>
       </div>
-      <label v-if="calendars.length" class="calendar-selector">
+      <label v-if="authenticated && calendars.length" class="calendar-selector">
         Calendar
         <select v-model="selectedCalendarId">
           <option v-for="calendar in calendars" :key="calendar.id" :value="String(calendar.id)">
@@ -182,6 +229,7 @@ function clearNote(date) {
         </select>
       </label>
       <button
+        v-if="authenticated"
         type="button"
         class="theme-toggle"
         :aria-label="`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`"
@@ -189,12 +237,26 @@ function clearNote(date) {
       >
         {{ theme === "light" ? "Dark" : "Light" }}
       </button>
+      <button v-if="authenticated" type="button" class="logout-button" @click="logout">Log out</button>
     </header>
 
-    <p v-if="error" class="notice error">{{ error }}</p>
-    <p v-else-if="!calendars.length" class="notice">No calendars are available.</p>
+    <section v-if="authLoading" class="notice">Checking your session...</section>
+    <section v-else-if="!authenticated" class="auth-panel">
+      <p class="eyebrow">The Notebook Calendar</p>
+      <h2>Sign in with a magic link</h2>
+      <form @submit.prevent="requestMagicLink">
+        <label>Email<input v-model="authEmail" type="email" required autocomplete="email" placeholder="you@example.com"></label>
+        <button type="submit">Send login link</button>
+      </form>
+      <p v-if="authMessage" class="management-message">{{ authMessage }}</p>
+    </section>
 
-    <section v-else class="calendar-panel" :aria-label="`${viewMode} calendar`">
+    <template v-else>
+      <p v-if="error" class="notice error">{{ error }}</p>
+      <CalendarManagementPanel :calendars="calendars" :selected-calendar-id="selectedCalendarId" :current-user="currentUser" @changed="loadCalendars" @select="selectedCalendarId = $event" />
+      <p v-if="!calendars.length" class="notice">Create a calendar to get started.</p>
+
+    <section v-if="calendars.length" class="calendar-panel" :aria-label="`${viewMode} calendar`">
       <nav class="calendar-toolbar" :aria-label="`${viewMode} navigation`">
         <div class="view-switcher" aria-label="Calendar view">
           <button type="button" :class="{ active: viewMode === 'month' }" @click="selectView('month')">Month</button>
@@ -231,12 +293,13 @@ function clearNote(date) {
     </section>
 
     <DayNoteEditor
-      v-if="selectedCalendarId"
+      v-if="selectedCalendarId && calendars.length"
       :calendar-id="selectedCalendarId"
       :date="selectedDate"
       :note="notes[selectedDate]"
       @saved="updateNote"
       @cleared="clearNote"
     />
+    </template>
   </main>
 </template>

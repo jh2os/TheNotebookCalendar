@@ -248,6 +248,112 @@ select,
   color: var(--accent);
 }
 
+.auth-panel,
+.management-panel {
+  margin-bottom: 24px;
+  padding: 20px;
+  border-top: 2px solid var(--foreground);
+  background: var(--surface);
+  box-shadow: 0 12px 30px var(--shadow);
+}
+
+.auth-panel h2 {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+.auth-panel form,
+.management-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.auth-panel label,
+.management-row label {
+  display: grid;
+  flex: 1 1 220px;
+  gap: 6px;
+  color: var(--muted-strong);
+  font: 700 0.75rem/1.2 sans-serif;
+  text-transform: uppercase;
+}
+
+.auth-panel input,
+.management-panel input,
+.management-panel select {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface-muted);
+  color: var(--foreground);
+  padding: 10px 12px;
+}
+
+.auth-panel button,
+.management-panel button,
+.logout-button {
+  min-height: 44px;
+  border: 1px solid var(--success);
+  border-radius: 4px;
+  background: var(--success);
+  color: var(--surface);
+  cursor: pointer;
+  padding: 10px 14px;
+}
+
+.logout-button,
+.danger-action {
+  border-color: var(--accent);
+  background: transparent;
+  color: var(--accent);
+}
+
+.management-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.member-management {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.member-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+  color: var(--foreground);
+  font: 0.95rem sans-serif;
+}
+
+.member-list small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.management-message {
+  margin: 0;
+  color: var(--success);
+  font: 0.9rem sans-serif;
+}
+
 .note-editor {
   margin-top: 24px;
   padding: 20px;
@@ -332,6 +438,22 @@ select,
 
   .calendar-selector,
   .calendar-selector select {
+    width: 100%;
+  }
+
+  .theme-toggle,
+  .logout-button {
+    width: 100%;
+  }
+
+  .auth-panel form,
+  .management-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .auth-panel button,
+  .management-row button {
     width: 100%;
   }
 
