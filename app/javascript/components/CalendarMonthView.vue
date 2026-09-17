@@ -7,6 +7,7 @@ import { apiFetch } from "../services/api"
 const calendars = ref([])
 const selectedCalendarId = ref("")
 const viewMode = ref("month")
+const defaultViewMode = ref("month")
 const displayedMonth = ref(monthStart(new Date()))
 const displayedWeek = ref(weekStart(new Date()))
 const selectedDate = ref(isoDate(new Date()))
@@ -19,10 +20,12 @@ const authenticated = ref(false)
 const authLoading = ref(true)
 const authEmail = ref("")
 const authMessage = ref("")
+const managementOpen = ref(false)
+const noteDrawerOpen = ref(false)
 
 const periodLabel = computed(() => viewMode.value === "month"
   ? displayedMonth.value.toLocaleDateString(undefined, { month: "long", year: "numeric" })
-  : `${displayedWeek.value.toLocaleDateString(undefined, { month: "short", day: "numeric" })} - ${isoDate(addDays(displayedWeek.value, 6))}`)
+  : `${displayedWeek.value.toLocaleDateString(undefined, { month: "short", day: "numeric" })} - ${addDays(displayedWeek.value, 6).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`)
 
 const days = computed(() => {
   const firstDay = displayedMonth.value
@@ -53,6 +56,7 @@ const selectedCalendar = computed(() => calendars.value.find((calendar) => Strin
 
 onMounted(() => {
   initializeTheme()
+  initializeViewMode()
   checkSession()
 })
 watch([selectedCalendarId, displayedMonth, displayedWeek, viewMode], loadNotes)
@@ -73,6 +77,14 @@ function applyTheme() {
   document.documentElement.dataset.theme = theme.value
 }
 
+function initializeViewMode() {
+  const savedViewMode = localStorage.getItem("notebook-calendar-view-mode")
+  if (savedViewMode === "month" || savedViewMode === "week") {
+    defaultViewMode.value = savedViewMode
+    viewMode.value = savedViewMode
+  }
+}
+
 async function checkSession() {
   try {
     const magicLinkToken = new URLSearchParams(window.location.search).get("magic_link")
@@ -87,6 +99,7 @@ async function checkSession() {
     currentUser.value = (await response.json()).user
     authenticated.value = true
     await loadCalendars()
+    managementOpen.value = calendars.value.length === 0
   } catch (sessionError) {
     authenticated.value = false
     if (new URLSearchParams(window.location.search).has("magic_link")) {
@@ -188,6 +201,11 @@ function selectView(mode) {
   }
 }
 
+function setDefaultView(mode) {
+  defaultViewMode.value = mode
+  localStorage.setItem("notebook-calendar-view-mode", mode)
+}
+
 function monthStart(date) {
   return new Date(date.getFullYear(), date.getMonth(), 1)
 }
@@ -223,6 +241,11 @@ function clearNote(date) {
   delete updatedNotes[date]
   notes.value = updatedNotes
 }
+
+function selectDate(date) {
+  selectedDate.value = date
+  noteDrawerOpen.value = true
+}
 </script>
 
 <template>
@@ -232,24 +255,27 @@ function clearNote(date) {
         <p class="eyebrow">The Notebook Calendar</p>
         <h1>{{ periodLabel }}</h1>
       </div>
-      <label v-if="authenticated && calendars.length" class="calendar-selector">
-        Calendar
-        <select v-model="selectedCalendarId">
-          <option v-for="calendar in calendars" :key="calendar.id" :value="String(calendar.id)">
-            {{ calendar.name }}
-          </option>
-        </select>
-      </label>
-      <button
-        v-if="authenticated"
-        type="button"
-        class="theme-toggle"
-        :aria-label="`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`"
-        @click="toggleTheme"
-      >
-        {{ theme === "light" ? "Dark" : "Light" }}
-      </button>
-      <button v-if="authenticated" type="button" class="logout-button" @click="logout">Log out</button>
+      <div v-if="authenticated" class="calendar-header-actions">
+        <label v-if="calendars.length" class="calendar-selector" aria-label="Select calendar">
+          <span class="sr-only">Calendar</span>
+          <select v-model="selectedCalendarId">
+            <option v-for="calendar in calendars" :key="calendar.id" :value="String(calendar.id)">
+              {{ calendar.name }}
+            </option>
+          </select>
+        </label>
+        <button
+          type="button"
+          class="manage-button"
+          aria-controls="calendar-management-drawer"
+          :aria-expanded="managementOpen"
+          aria-label="Open settings"
+          title="Open settings"
+          @click="managementOpen = true"
+        >
+          <span aria-hidden="true" class="settings-icon">&#9881;</span>
+        </button>
+      </div>
     </header>
 
     <section v-if="authLoading" class="notice">Checking your session...</section>
@@ -265,7 +291,32 @@ function clearNote(date) {
 
     <template v-else>
       <p v-if="error" class="notice error">{{ error }}</p>
-      <CalendarManagementPanel :calendars="calendars" :selected-calendar-id="selectedCalendarId" :current-user="currentUser" @changed="loadCalendars" @select="selectedCalendarId = $event" />
+      <div v-if="managementOpen" class="drawer-backdrop" @click="managementOpen = false"></div>
+      <aside
+        v-if="managementOpen"
+        id="calendar-management-drawer"
+        class="drawer management-drawer"
+        aria-label="Settings"
+      >
+        <div class="drawer-heading">
+          <div>
+            <h2>Settings</h2>
+          </div>
+          <button type="button" class="drawer-close" aria-label="Close calendar management" @click="managementOpen = false">Close</button>
+        </div>
+        <CalendarManagementPanel
+          :calendars="calendars"
+          :selected-calendar-id="selectedCalendarId"
+          :current-user="currentUser"
+          :theme="theme"
+          :view-mode="defaultViewMode"
+          @changed="loadCalendars"
+          @created="managementOpen = false"
+          @logout="logout"
+          @select-view="setDefaultView"
+          @toggle-theme="toggleTheme"
+        />
+      </aside>
       <p v-if="!calendars.length" class="notice">Create a calendar to get started.</p>
 
     <section v-if="calendars.length" class="calendar-panel" :aria-label="`${viewMode} calendar`">
@@ -274,12 +325,26 @@ function clearNote(date) {
           <button type="button" :class="{ active: viewMode === 'month' }" @click="selectView('month')">Month</button>
           <button type="button" :class="{ active: viewMode === 'week' }" @click="selectView('week')">Week</button>
         </div>
-        <button v-if="viewMode === 'month'" type="button" @click="moveMonth(-1)">Previous month</button>
-        <button v-else type="button" @click="moveWeek(-1)">Previous week</button>
+        <button
+          v-if="viewMode === 'month'"
+          type="button"
+          class="calendar-nav-arrow"
+          aria-label="Previous month"
+          title="Previous month"
+          @click="moveMonth(-1)"
+        >&#8592;</button>
+        <button v-else type="button" class="calendar-nav-arrow" aria-label="Previous week" title="Previous week" @click="moveWeek(-1)">&#8592;</button>
         <button v-if="viewMode === 'month'" type="button" @click="goToCurrentMonth">Today</button>
         <button v-else type="button" @click="goToCurrentWeek">Today</button>
-        <button v-if="viewMode === 'month'" type="button" @click="moveMonth(1)">Next month</button>
-        <button v-else type="button" @click="moveWeek(1)">Next week</button>
+        <button
+          v-if="viewMode === 'month'"
+          type="button"
+          class="calendar-nav-arrow"
+          aria-label="Next month"
+          title="Next month"
+          @click="moveMonth(1)"
+        >&#8594;</button>
+        <button v-else type="button" class="calendar-nav-arrow" aria-label="Next week" title="Next week" @click="moveWeek(1)">&#8594;</button>
         <span v-if="loading" class="loading-status">Loading notes...</span>
       </nav>
 
@@ -295,23 +360,32 @@ function clearNote(date) {
           :class="{ 'outside-month': !day.inMonth, today: day.date === isoDate(new Date()), selected: day.date === selectedDate }"
           :aria-label="`${day.date}${notes[day.date] ? ', has note' : ''}`"
           :aria-pressed="day.date === selectedDate"
-          @click="selectedDate = day.date"
+          @click="selectDate(day.date)"
         >
           <span>{{ day.dayNumber }}</span>
-          <span v-if="notes[day.date]" class="note-indicator" aria-label="Has note"></span>
+          <span v-if="notes[day.date]" class="note-preview" :title="notes[day.date].body">{{ notes[day.date].body }}</span>
         </button>
       </div>
       <p class="selected-date">Selected: <strong>{{ selectedDate }}</strong></p>
     </section>
 
-    <DayNoteEditor
-      v-if="selectedCalendarId && calendars.length"
-      :calendar-id="selectedCalendarId"
-      :date="selectedDate"
-      :note="notes[selectedDate]"
-      @saved="updateNote"
-      @cleared="clearNote"
-    />
+    <div v-if="noteDrawerOpen && selectedCalendarId && calendars.length" class="drawer-backdrop" @click="noteDrawerOpen = false"></div>
+    <aside v-if="noteDrawerOpen && selectedCalendarId && calendars.length" class="drawer note-drawer" aria-label="Daily note editor">
+      <div class="drawer-heading">
+        <div>
+          <p class="eyebrow">Focused day</p>
+          <h2>{{ selectedDate }}</h2>
+        </div>
+        <button type="button" class="drawer-close" aria-label="Close daily note" @click="noteDrawerOpen = false">Close</button>
+      </div>
+      <DayNoteEditor
+        :calendar-id="selectedCalendarId"
+        :date="selectedDate"
+        :note="notes[selectedDate]"
+        @saved="updateNote"
+        @cleared="clearNote"
+      />
+    </aside>
     </template>
   </main>
 </template>
