@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -46,8 +46,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000000) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
+    t.string "magic_link_digest"
+    t.datetime "magic_link_expires_at"
+    t.datetime "magic_link_used_at"
     t.datetime "updated_at", null: false
     t.index "lower((email)::text)", name: "index_users_on_lower_email", unique: true
+    t.index ["magic_link_digest"], name: "index_users_on_magic_link_digest", unique: true
   end
 
   add_foreign_key "calendar_memberships", "calendars"

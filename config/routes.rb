@@ -7,6 +7,14 @@ Rails.application.routes.draw do
 
   root "home#show"
 
+  namespace :api do
+    namespace :auth do
+      resources :magic_links, only: :create
+      get "magic_links/:token", to: "magic_links#show", as: :magic_link
+      resource :session, only: %i[show destroy]
+    end
+  end
+
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
