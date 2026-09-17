@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue"
+import DayNoteEditor from "./DayNoteEditor.vue"
 
 const calendars = ref([])
 const selectedCalendarId = ref("")
@@ -99,6 +100,16 @@ function isoDate(date) {
   const day = String(date.getDate()).padStart(2, "0")
   return `${year}-${month}-${day}`
 }
+
+function updateNote(note) {
+  notes.value = { ...notes.value, [note.date]: note }
+}
+
+function clearNote(date) {
+  const updatedNotes = { ...notes.value }
+  delete updatedNotes[date]
+  notes.value = updatedNotes
+}
 </script>
 
 <template>
@@ -149,5 +160,14 @@ function isoDate(date) {
       </div>
       <p class="selected-date">Selected: <strong>{{ selectedDate }}</strong></p>
     </section>
+
+    <DayNoteEditor
+      v-if="selectedCalendarId"
+      :calendar-id="selectedCalendarId"
+      :date="selectedDate"
+      :note="notes[selectedDate]"
+      @saved="updateNote"
+      @cleared="clearNote"
+    />
   </main>
 </template>
