@@ -9,8 +9,7 @@ module Api
     end
 
     def create
-      user = User.find_by(email: normalized_email)
-      return render json: { error: "User not found" }, status: :not_found unless user
+      user = User.find_or_create_by!(email: normalized_email)
 
       membership = @calendar.calendar_memberships.create(user: user, role: "member")
       if membership.persisted?

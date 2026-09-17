@@ -600,6 +600,10 @@ select,
   font: 0.9rem sans-serif;
 }
 
+.auth-panel .management-message {
+  margin-top: 16px;
+}
+
 .note-editor {
   margin-top: 24px;
   padding: 20px;

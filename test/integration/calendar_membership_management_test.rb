@@ -56,14 +56,16 @@ class CalendarMembershipManagementTest < ActionDispatch::IntegrationTest
     assert @owner_membership.reload.persisted?
   end
 
-  test "duplicate and missing users are rejected" do
+  test "duplicate memberships are rejected and missing users are created" do
     authenticate_as(@owner)
 
     post api_calendar_memberships_url(calendar_id: @calendar.id), params: { email: @member.email }, as: :json
     assert_response :unprocessable_entity
 
     post api_calendar_memberships_url(calendar_id: @calendar.id), params: { email: "missing@example.com" }, as: :json
-    assert_response :not_found
+    assert_response :created
+    assert User.exists?(email: "missing@example.com")
+    assert @calendar.reload.users.exists?(email: "missing@example.com")
   end
 
   test "removed members immediately lose calendar access" do

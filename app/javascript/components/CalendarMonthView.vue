@@ -120,7 +120,7 @@ async function requestMagicLink() {
       body: JSON.stringify({ email: authEmail.value }),
     })
     if (!response.ok) throw new Error("Unable to request a login link")
-    authMessage.value = "If the email is valid, a login link has been sent."
+    authMessage.value = "Check your email for the login link."
   } catch (authError) {
     authMessage.value = authError.message
   }
@@ -281,7 +281,7 @@ function selectDate(date) {
     <section v-if="authLoading" class="notice">Checking your session...</section>
     <section v-else-if="!authenticated" class="auth-panel">
       <p class="eyebrow">The Notebook Calendar</p>
-      <h2>Sign in with a magic link</h2>
+      <h2>Provide your email to access or create a calendar</h2>
       <form @submit.prevent="requestMagicLink">
         <label>Email<input v-model="authEmail" type="email" required autocomplete="email" placeholder="you@example.com"></label>
         <button type="submit">Send login link</button>

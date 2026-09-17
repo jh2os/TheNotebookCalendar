@@ -11,7 +11,7 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     visit "/"
     fill_in "Email", with: "new-user@example.com"
     click_button "Send login link"
-    assert_text "If the email is valid, a login link has been sent."
+    assert_text "Check your email for the login link."
 
     visit magic_link_path_for_last_email
     assert_text "Create a calendar to get started."
@@ -54,7 +54,7 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     find(".preferences-section label.theme-switch:not(.view-switch)").click
     assert_equal "dark", page.evaluate_script("document.documentElement.dataset.theme")
     click_button "Log out"
-    assert_text "Sign in with a magic link"
+    assert_text "Provide your email to access or create a calendar"
   end
 
   test "owner can share a calendar and member cannot administer membership" do
@@ -95,9 +95,9 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     visit "/"
     fill_in "Email", with: user.email
     click_button "Send login link"
-    assert_text "If the email is valid, a login link has been sent."
+    assert_text "Check your email for the login link."
     visit magic_link_path_for_last_email
-    assert_no_text "Sign in with a magic link"
+    assert_no_text "Provide your email to access or create a calendar"
   end
 
   def magic_link_path_for_last_email
