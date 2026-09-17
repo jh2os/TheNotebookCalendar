@@ -8,6 +8,8 @@ Rails.application.routes.draw do
   root "home#show"
 
   namespace :api do
+    resources :calendars, only: %i[index show create update destroy]
+
     namespace :auth do
       resources :magic_links, only: :create
       get "magic_links/:token", to: "magic_links#show", as: :magic_link
