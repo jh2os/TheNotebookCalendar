@@ -15,7 +15,21 @@ class MagicLinkAuthenticationTest < ActionDispatch::IntegrationTest
 
     assert_response :accepted
     assert_equal known_response, unknown_response
-    assert_equal "If an account exists, a magic link has been sent.", known_response["message"]
+    assert_equal "If the email is valid, a magic link has been sent.", known_response["message"]
+    assert User.exists?(email: "unknown@example.com")
+  end
+
+  test "creates an account for a new email and authenticates it with the link" do
+    post api_auth_magic_links_url, params: { email: "new@example.com" }, as: :json
+
+    assert_response :accepted
+    user = User.find_by!(email: "new@example.com")
+    token = token_from_last_email
+
+    get api_auth_magic_link_url(token: token), as: :json
+
+    assert_response :success
+    assert_equal user.id, response.parsed_body.dig("user", "id")
   end
 
   test "valid magic link authenticates the user and is single use" do
@@ -68,6 +82,6 @@ class MagicLinkAuthenticationTest < ActionDispatch::IntegrationTest
   def token_from_last_email
     email = ActionMailer::Base.deliveries.last
     body = email.parts.map(&:decoded).join("\n")
-    body.match(%r{/api/auth/magic_links/([A-Za-z0-9_-]+)})[1]
+    body.match(%r{[?&]magic_link=([A-Za-z0-9_-]+)})[1]
   end
 end
