@@ -10,8 +10,48 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 0) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
+  create_table "calendar_memberships", force: :cascade do |t|
+    t.bigint "calendar_id", null: false
+    t.datetime "created_at", null: false
+    t.string "role", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["calendar_id", "user_id"], name: "index_calendar_memberships_on_calendar_id_and_user_id", unique: true
+    t.index ["calendar_id"], name: "index_calendar_memberships_on_calendar_id"
+    t.index ["user_id"], name: "index_calendar_memberships_on_user_id"
+  end
+
+  create_table "calendars", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_calendars_on_created_by_id"
+  end
+
+  create_table "daily_notes", force: :cascade do |t|
+    t.text "body", null: false
+    t.bigint "calendar_id", null: false
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.datetime "updated_at", null: false
+    t.index ["calendar_id", "date"], name: "index_daily_notes_on_calendar_id_and_date", unique: true
+    t.index ["calendar_id"], name: "index_daily_notes_on_calendar_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.datetime "updated_at", null: false
+    t.index "lower((email)::text)", name: "index_users_on_lower_email", unique: true
+  end
+
+  add_foreign_key "calendar_memberships", "calendars"
+  add_foreign_key "calendar_memberships", "users"
+  add_foreign_key "calendars", "users", column: "created_by_id"
+  add_foreign_key "daily_notes", "calendars"
 end
