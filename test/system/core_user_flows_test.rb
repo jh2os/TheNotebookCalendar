@@ -11,6 +11,7 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     visit "/"
     fill_in "Email", with: "new-user@example.com"
     click_button "Send login link"
+    assert_text "If the email is valid, a login link has been sent."
 
     visit magic_link_path_for_last_email
     assert_text "Create a calendar to get started."
@@ -18,14 +19,17 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     fill_in "Calendar name", with: "Personal"
     click_button "Create"
     assert_text "Personal"
+    assert_selector 'textarea[aria-label="Daily note"]:not([disabled])'
 
     click_button "#{Date.current.day}"
-    fill_in "Daily note", with: "Remember the important thing"
+    find('textarea[aria-label="Daily note"]').set("Remember the important thing")
     click_button "Save note"
-    assert_field "Daily note", with: "Remember the important thing"
+    assert_selector 'textarea[aria-label="Daily note"]'
+    assert_equal "Remember the important thing", find('textarea[aria-label="Daily note"]').value
 
-    reload_page
-    assert_field "Daily note", with: "Remember the important thing"
+    page.refresh
+    assert_selector 'textarea[aria-label="Daily note"]'
+    assert_equal "Remember the important thing", find('textarea[aria-label="Daily note"]').value
   end
 
   test "existing user can navigate views, edit notes, change theme, and log out" do
@@ -33,7 +37,9 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     calendar.daily_notes.create!(date: Date.current, body: "Existing note")
     sign_in_as(@owner)
 
-    assert_field "Daily note", with: "Existing note"
+    assert_text "Existing calendar"
+    assert_selector 'textarea[aria-label="Daily note"]:not([disabled])'
+    assert_equal "Existing note", find('textarea[aria-label="Daily note"]').value
     click_button "Week"
     assert_selector ".week-grid"
     click_button "Next week"
@@ -79,6 +85,7 @@ class CoreUserFlowsTest < ApplicationSystemTestCase
     visit "/"
     fill_in "Email", with: user.email
     click_button "Send login link"
+    assert_text "If the email is valid, a login link has been sent."
     visit magic_link_path_for_last_email
     assert_no_text "Sign in with a magic link"
   end
