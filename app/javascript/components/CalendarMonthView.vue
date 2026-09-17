@@ -4,16 +4,17 @@ import DayNoteEditor from "./DayNoteEditor.vue"
 
 const calendars = ref([])
 const selectedCalendarId = ref("")
+const viewMode = ref("month")
 const displayedMonth = ref(monthStart(new Date()))
+const displayedWeek = ref(weekStart(new Date()))
 const selectedDate = ref(isoDate(new Date()))
 const notes = ref({})
 const loading = ref(false)
 const error = ref("")
 
-const monthLabel = computed(() => displayedMonth.value.toLocaleDateString(undefined, {
-  month: "long",
-  year: "numeric",
-}))
+const periodLabel = computed(() => viewMode.value === "month"
+  ? displayedMonth.value.toLocaleDateString(undefined, { month: "long", year: "numeric" })
+  : `${displayedWeek.value.toLocaleDateString(undefined, { month: "short", day: "numeric" })} - ${isoDate(addDays(displayedWeek.value, 6))}`)
 
 const days = computed(() => {
   const firstDay = displayedMonth.value
@@ -33,10 +34,17 @@ const days = computed(() => {
   return result
 })
 
+const visibleDays = computed(() => viewMode.value === "month" ? days.value : weekDays.value)
+
+const weekDays = computed(() => Array.from({ length: 7 }, (_, index) => {
+  const date = addDays(displayedWeek.value, index)
+  return { date: isoDate(date), dayNumber: date.getDate(), inMonth: true }
+}))
+
 const selectedCalendar = computed(() => calendars.value.find((calendar) => String(calendar.id) === String(selectedCalendarId.value)))
 
 onMounted(loadCalendars)
-watch([selectedCalendarId, displayedMonth], loadNotes)
+watch([selectedCalendarId, displayedMonth, displayedWeek, viewMode], loadNotes)
 
 async function loadCalendars() {
   try {
@@ -62,8 +70,8 @@ async function loadNotes() {
   error.value = ""
 
   try {
-    const rangeStart = days.value[0].date
-    const rangeEnd = days.value[days.value.length - 1].date
+    const rangeStart = visibleDays.value[0].date
+    const rangeEnd = visibleDays.value[visibleDays.value.length - 1].date
     const query = new URLSearchParams({ start_date: rangeStart, end_date: rangeEnd })
     const response = await fetch(`/api/calendars/${selectedCalendarId.value}/notes?${query}`)
     if (!response.ok) throw new Error("Unable to load notes")
@@ -80,12 +88,38 @@ function moveMonth(offset) {
   displayedMonth.value = new Date(displayedMonth.value.getFullYear(), displayedMonth.value.getMonth() + offset, 1)
 }
 
+function moveWeek(offset) {
+  displayedWeek.value = addDays(displayedWeek.value, offset * 7)
+}
+
 function goToCurrentMonth() {
   displayedMonth.value = monthStart(new Date())
 }
 
+function goToCurrentWeek() {
+  displayedWeek.value = weekStart(new Date())
+}
+
+function selectView(mode) {
+  viewMode.value = mode
+  if (mode === "week") {
+    displayedWeek.value = weekStart(parseDate(selectedDate.value))
+  } else {
+    displayedMonth.value = monthStart(parseDate(selectedDate.value))
+  }
+}
+
 function monthStart(date) {
   return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+function weekStart(date) {
+  return addDays(new Date(date.getFullYear(), date.getMonth(), date.getDate()), -date.getDay())
+}
+
+function parseDate(value) {
+  const [year, month, day] = value.split("-").map(Number)
+  return new Date(year, month - 1, day)
 }
 
 function addDays(date, amount) {
@@ -117,7 +151,7 @@ function clearNote(date) {
     <header class="calendar-header">
       <div>
         <p class="eyebrow">The Notebook Calendar</p>
-        <h1>{{ monthLabel }}</h1>
+        <h1>{{ periodLabel }}</h1>
       </div>
       <label v-if="calendars.length" class="calendar-selector">
         Calendar
@@ -132,20 +166,27 @@ function clearNote(date) {
     <p v-if="error" class="notice error">{{ error }}</p>
     <p v-else-if="!calendars.length" class="notice">No calendars are available.</p>
 
-    <section v-else class="calendar-panel" aria-label="Monthly calendar">
-      <nav class="calendar-toolbar" aria-label="Month navigation">
-        <button type="button" @click="moveMonth(-1)">Previous month</button>
-        <button type="button" @click="goToCurrentMonth">Today</button>
-        <button type="button" @click="moveMonth(1)">Next month</button>
+    <section v-else class="calendar-panel" :aria-label="`${viewMode} calendar`">
+      <nav class="calendar-toolbar" :aria-label="`${viewMode} navigation`">
+        <div class="view-switcher" aria-label="Calendar view">
+          <button type="button" :class="{ active: viewMode === 'month' }" @click="selectView('month')">Month</button>
+          <button type="button" :class="{ active: viewMode === 'week' }" @click="selectView('week')">Week</button>
+        </div>
+        <button v-if="viewMode === 'month'" type="button" @click="moveMonth(-1)">Previous month</button>
+        <button v-else type="button" @click="moveWeek(-1)">Previous week</button>
+        <button v-if="viewMode === 'month'" type="button" @click="goToCurrentMonth">Today</button>
+        <button v-else type="button" @click="goToCurrentWeek">Today</button>
+        <button v-if="viewMode === 'month'" type="button" @click="moveMonth(1)">Next month</button>
+        <button v-else type="button" @click="moveWeek(1)">Next week</button>
         <span v-if="loading" class="loading-status">Loading notes...</span>
       </nav>
 
       <div class="weekday-row" aria-hidden="true">
         <span v-for="weekday in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="weekday">{{ weekday }}</span>
       </div>
-      <div class="month-grid">
+      <div class="month-grid" :class="{ 'week-grid': viewMode === 'week' }">
         <button
-          v-for="day in days"
+          v-for="day in visibleDays"
           :key="day.date"
           type="button"
           class="calendar-day"
