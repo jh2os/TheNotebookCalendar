@@ -9,6 +9,7 @@ Rails.application.routes.draw do
 
   namespace :api do
     resources :calendars, only: %i[index show create update destroy]
+    resources :calendar_memberships, path: "calendars/:calendar_id/members", only: %i[index create destroy], param: :user_id
 
     namespace :auth do
       resources :magic_links, only: :create
