@@ -32,6 +32,40 @@ bin/dev
 
 The application runs at `http://localhost:3000`. The health endpoint is `GET /up`.
 
+## Custom Hosts and DNS
+
+Use `my.notebookcalendar.local` for local browser testing. Add this mapping to `/etc/hosts`:
+
+```text
+127.0.0.1 my.notebookcalendar.local
+::1 my.notebookcalendar.local
+```
+
+On Ubuntu, edit the file with:
+
+```sh
+sudo nano /etc/hosts
+```
+
+Then add these values to `.env` and restart `bin/dev`:
+
+```env
+APP_HOST=my.notebookcalendar.local
+APP_PORT=3000
+APP_PROTOCOL=http
+```
+
+Open `http://my.notebookcalendar.local:3000`. The development mailer will generate magic links using this host.
+
+For production, configure `my.notebookcalendar.app` as the custom domain in AWS, then create the DNS record AWS provides in Cloudflare. Set these production environment values in AWS secrets/configuration:
+
+```env
+APP_HOST=my.notebookcalendar.app
+APP_PROTOCOL=https
+```
+
+Do not add `my.notebookcalendar.app` to `/etc/hosts`; it should resolve through Cloudflare DNS after the AWS certificate and custom domain are active.
+
 ## Database
 
 Development and test use PostgreSQL databases named `the_notebook_calendar_development` and `the_notebook_calendar_test` by default. Override the connection with the normal Rails database environment variables, such as `DATABASE_URL`.
