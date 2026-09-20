@@ -10,7 +10,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
       /snap/bin/chromium
     ].find { |path| File.executable?(path) }
     options.binary = chrome_binary if chrome_binary
-    #options.binary = "/snap/bin/chromium"
+    # options.binary = "/snap/bin/chromium"
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--remote-debugging-port=0")
