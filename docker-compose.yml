@@ -17,6 +17,8 @@ services:
       - .env
     volumes:
       - .:/rails
+      - /rails/node_modules
+      - /rails/public/vite-dev
     depends_on:
       db:
         condition: service_healthy
@@ -37,6 +39,8 @@ services:
       VITE_RUBY_HOST: "0.0.0.0"
     volumes:
       - .:/rails
+      - /rails/node_modules
+      - /rails/public/vite-dev
   db:
     image: postgres:15-alpine
     container_name: thenotebookcalendar-db-1
@@ -52,3 +56,5 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+volumes:
+  postgres_data:
