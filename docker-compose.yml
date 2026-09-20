@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final
+    container_name: thenotebookcalendar-app-1
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_HOST: db
+      APP_HOST: "localhost:3000"
+      RAILS_ENV: "development"
+      VITE_RUBY_HOST: "localhost"
+      VITE_RUBY_VERIFY_HOST: "vite"
+    env_file:
+      - .env
+    volumes:
+      - .:/rails
+    depends_on:
+      db:
+        condition: service_healthy
+      vite:
+        condition: service_started
+
+  vite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final
+    container_name: thenotebookcalendar-vite-1
+    command: bundle exec vite dev
+    ports:
+      - "3036:3036"
+    environment:
+      DATABASE_HOST: db
+      RAILS_ENV: "development"
+      VITE_RUBY_HOST: "0.0.0.0"
+    volumes:
+      - .:/rails
+
+  db:
+    image: postgres:15-alpine
+    container_name: thenotebookcalendar-db-1
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
