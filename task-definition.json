@@ -1,0 +1,66 @@
+{
+  "family": "thenotebookcalendar-production",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::093337158551:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::093337158551:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "rails-app",
+      "image": "093337158551.dkr.ecr.us-east-1.amazonaws.com/thenotebookcalendar:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "RAILS_ENV", "value": "production" },
+        { "name": "RAILS_SERVE_STATIC_FILES", "value": "true" },
+        { "name": "RAILS_LOG_TO_STDOUT", "value": "true" }
+      ],
+      "secrets": [
+        {
+          "name": "RAILS_MASTER_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:093337158551:secret:thenotebookcalendar/production:RAILS_MASTER_KEY::"
+        },
+        {
+          "name": "SECRET_KEY_BASE",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:093337158551:secret:thenotebookcalendar/production:SECRET_KEY_BASE::"
+        },
+        {
+          "name": "DATABASE_HOST",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:093337158551:secret:thenotebookcalendar/production:DATABASE_HOST::"
+        },
+        {
+          "name": "DATABASE_USER",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:093337158551:secret:thenotebookcalendar/production:DATABASE_USER::"
+        },
+        {
+          "name": "DATABASE_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:093337158551:secret:thenotebookcalendar/production:DATABASE_PASSWORD::"
+        },
+        {
+          "name": "DATABASE_NAME",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:093337158551:secret:thenotebookcalendar/production:DATABASE_NAME::"
+        },
+        {
+          "name": "SMTP_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:093337158551:secret:thenotebookcalendar/production:SMTP_PASSWORD::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/thenotebookcalendar",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

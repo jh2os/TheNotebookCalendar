@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: final
+      target: development # <--- Point to development stage
     container_name: thenotebookcalendar-app-1
     ports:
       - "3000:3000"
@@ -24,11 +24,12 @@ services:
         condition: service_healthy
       vite:
         condition: service_started
+
   vite:
     build:
       context: .
       dockerfile: Dockerfile
-      target: final
+      target: development # <--- Point to development stage
     container_name: thenotebookcalendar-vite-1
     command: bundle exec vite dev
     ports:
@@ -41,11 +42,12 @@ services:
       - .:/rails
       - /rails/node_modules
       - /rails/public/vite-dev
+
   db:
     image: postgres:15-alpine
     container_name: thenotebookcalendar-db-1
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
@@ -56,5 +58,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
 volumes:
   postgres_data:
