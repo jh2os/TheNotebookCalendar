@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.1.3", ">= 8.1.3.1"
+gem "rails", "~> 8.1.4"
 # Rails 8.1's encrypted cookie/session decoder is not compatible with json 3.x.
 gem "json", "~> 2.15"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
